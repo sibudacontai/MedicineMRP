@@ -107,7 +107,7 @@
 <div class="total-bar">
   <div class="total-bar-inner">
     <div class="total-row"><span>Total Amount</span><span id="totalAmt">Rs. 0</span></div>
-    <div class="total-row"><span>Discount</span><span>Rs. <input type="number" id="discountInput" min="0" value="0" /></span></div>
+    <div class="total-row"><span>Discount</span><span><select id="discountType"><option value="amount">₹</option><option value="percent">%</option></select> <input type="number" id="discountInput" min="0" value="0" style="width:70px"/></span></div>
     <div class="total-row net"><span>Net Amount</span><span id="netAmt">Rs. 0</span></div>
     <div class="bill-btns">
       <button id="clearAll">Clear All</button>
@@ -152,6 +152,7 @@ const itemCountEl = document.getElementById('itemCount');
 const totalAmtEl = document.getElementById('totalAmt');
 const discountInput = document.getElementById('discountInput');
 const netAmtEl = document.getElementById('netAmt');
+const discountType=document.getElementById('discountType');
 const clearAllBtn = document.getElementById('clearAll');
 const checkoutBtn = document.getElementById('checkoutBtn');
 const checkoutMsg = document.getElementById('checkoutMsg');
@@ -331,14 +332,16 @@ function renderBill(){
 }
 
 function updateNetAmount(){
-  let discount = parseFloat(discountInput.value);
-  if(isNaN(discount) || discount < 0) discount = 0;
-  let net = currentTotal - discount;
-  if(net < 0) net = 0;
-  netAmtEl.textContent = formatRs(net);
+  let discount=parseFloat(discountInput.value); if(isNaN(discount)||discount<0) discount=0;
+  let net=currentTotal;
+  if(discountType.value==='percent'){ net=currentTotal-(currentTotal*discount/100);}
+  else{ net=currentTotal-discount;}
+  if(net<0) net=0;
+  netAmtEl.textContent=formatRs(net);
 }
 
 discountInput.addEventListener('input', updateNetAmount);
+discountType.addEventListener('change', updateNetAmount);
 
 clearAllBtn.addEventListener('click', () => {
   if(bill.length === 0) return;
