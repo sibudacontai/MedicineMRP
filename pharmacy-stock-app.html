@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Pharmacy Billing</title>
+<style>
+  :root{
+    --teal:#0F9D72;
+    --teal-dark:#0C7A59;
+    --bg:#E6F3EE;
+    --muted:#6b7c76;
+    --muted-2:#9db0a9;
+    --stamp:#C0392B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#173229;}
+  #app{max-width:520px;margin:0 auto;padding-bottom:170px;}
+  header{padding:22px 20px 14px;position:relative;}
+  .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--teal-dark);font-weight:bold;text-transform:uppercase;}
+  h1{margin:2px 0 0;font-size:24px;font-weight:bold;}
+  .settings-btn{position:absolute;top:18px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--teal-dark);}
+
+  .search-wrap{padding:0 20px;}
+  .search-box{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #d3e6de;border-radius:14px;padding:12px 14px;}
+  .search-box:focus-within{border-color:var(--teal);}
+  #searchInput{border:none;outline:none;flex:1;font-size:16px;background:none;color:#173229;}
+  #clearSearch{border:none;background:none;color:var(--muted-2);font-size:16px;cursor:pointer;}
+  .sync-row{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 0;font-size:11.5px;color:var(--muted);}
+  #syncBtn{border:none;background:none;color:var(--teal-dark);font-weight:bold;font-size:12px;padding:2px 4px;cursor:pointer;}
+
+  .results{padding:10px 20px 0;display:flex;flex-direction:column;gap:8px;}
+  .result-item{background:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+  .r-name{font-weight:bold;font-size:14.5px;}
+  .r-stock{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .r-stock.low{color:var(--stamp);font-weight:bold;}
+  .r-add{background:var(--teal);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;line-height:1;}
+  .empty{text-align:center;color:var(--muted-2);padding:20px 10px;font-size:14px;}
+
+  .bill-section{padding:16px 20px 0;}
+  .bill-title{font-size:12px;letter-spacing:.06em;color:var(--teal-dark);font-weight:bold;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .bill-title .count{background:#d7ede4;color:var(--teal-dark);padding:2px 8px;border-radius:20px;font-size:11px;}
+  .bill-card{background:#fff;border-radius:14px;padding:6px 14px;}
+  .bill-empty{text-align:center;color:var(--muted-2);padding:24px 10px;font-size:13.5px;}
+  .bill-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eef4f1;}
+  .bill-row:last-child{border-bottom:none;}
+  .b-name{flex:1;font-size:13.5px;font-weight:bold;}
+  .b-price{font-size:12px;color:var(--muted);}
+  .b-qty{width:52px;border:2px solid #d3e6de;border-radius:8px;padding:5px;text-align:center;font-size:14px;}
+  .b-linetotal{width:70px;text-align:right;font-size:13.5px;font-weight:bold;}
+  .b-remove{border:none;background:none;color:var(--stamp);font-size:16px;cursor:pointer;padding:0 2px;}
+
+  .total-bar{position:fixed;bottom:0;left:0;right:0;background:var(--teal-dark);color:#fff;padding:14px 20px 18px;}
+  .total-bar-inner{max-width:520px;margin:0 auto;}
+  .total-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px;}
+  .total-row.net{font-size:17px;font-weight:bold;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:8px;}
+  .total-row input{width:90px;border:none;border-radius:8px;padding:6px 8px;text-align:right;font-size:14px;}
+  .bill-btns{display:flex;gap:8px;margin-top:10px;}
+  .bill-btns button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:bold;font-size:13.5px;cursor:pointer;}
+  #clearAll{background:rgba(255,255,255,.15);color:#fff;}
+  #checkoutBtn{background:#fff;color:var(--teal-dark);}
+  #checkoutBtn:disabled{opacity:.5;}
+  #checkoutMsg{font-size:12px;margin-top:6px;text-align:center;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:420px;}
+  .modal h2{margin:0 0 12px;font-size:17px;}
+  .modal label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;}
+  .modal input{width:100%;border:2px solid #d3e6de;border-radius:10px;padding:9px;font-size:13px;}
+  .modal .btn-row{display:flex;gap:8px;margin-top:16px;}
+  .modal button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:bold;font-size:14px;cursor:pointer;}
+  .modal .save{background:var(--teal);color:#fff;}
+  .modal .cancel{background:#eee;color:#333;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="eyebrow">Pharmacy · Billing</div>
+    <h1>Medicine Bill</h1>
+    <button class="settings-btn" id="settingsBtn">⚙</button>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="searchInput" type="text" placeholder="Search medicine name…" autocomplete="off" />
+      <button id="clearSearch" aria-label="Clear search">✕</button>
+    </div>
+    <div class="sync-row">
+      <span id="syncStatus">—</span>
+      <button id="syncBtn" type="button">🔄 Sync</button>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <div class="bill-section">
+    <div class="bill-title"><span>BILL</span><span class="count" id="itemCount">0 items</span></div>
+    <div class="bill-card" id="billCard"></div>
+  </div>
+
+</div>
+
+<div class="total-bar">
+  <div class="total-bar-inner">
+    <div class="total-row"><span>Total Amount</span><span id="totalAmt">Rs. 0</span></div>
+    <div class="total-row"><span>Discount</span><span>Rs. <input type="number" id="discountInput" min="0" value="0" /></span></div>
+    <div class="total-row net"><span>Net Amount</span><span id="netAmt">Rs. 0</span></div>
+    <div class="bill-btns">
+      <button id="clearAll">Clear All</button>
+      <button id="checkoutBtn">Confirm & Reduce Stock</button>
+    </div>
+    <div id="checkoutMsg"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Settings</h2>
+    <label>Google Sheet ID</label>
+    <input id="cfgSheetId" placeholder="e.g. 1Zve1CCoApww70d_..." />
+    <label>Apps Script Web App URL (for reducing stock)</label>
+    <input id="cfgScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+    <div class="btn-row">
+      <button class="cancel" id="cfgCancel">Cancel</button>
+      <button class="save" id="cfgSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let ITEMS = []; // {name, stock, price}
+let bill = [];  // {name, price, qty, stock}
+let currentTotal = 0;
+
+const searchInput = document.getElementById('searchInput');
+const clearSearch = document.getElementById('clearSearch');
+const resultsEl = document.getElementById('results');
+const syncStatusEl = document.getElementById('syncStatus');
+const syncBtn = document.getElementById('syncBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+const modalBg = document.getElementById('modalBg');
+const cfgSheetId = document.getElementById('cfgSheetId');
+const cfgScriptUrl = document.getElementById('cfgScriptUrl');
+const cfgSave = document.getElementById('cfgSave');
+const cfgCancel = document.getElementById('cfgCancel');
+const billCard = document.getElementById('billCard');
+const itemCountEl = document.getElementById('itemCount');
+const totalAmtEl = document.getElementById('totalAmt');
+const discountInput = document.getElementById('discountInput');
+const netAmtEl = document.getElementById('netAmt');
+const clearAllBtn = document.getElementById('clearAll');
+const checkoutBtn = document.getElementById('checkoutBtn');
+const checkoutMsg = document.getElementById('checkoutMsg');
+
+function formatRs(n){ return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
+
+function getConfig(){
+  return {
+    sheetId: localStorage.getItem('pharm_sheet_id') || '',
+    scriptUrl: localStorage.getItem('pharm_script_url') || ''
+  };
+}
+function saveConfig(sheetId, scriptUrl){
+  localStorage.setItem('pharm_sheet_id', sheetId.trim());
+  localStorage.setItem('pharm_script_url', scriptUrl.trim());
+}
+
+settingsBtn.addEventListener('click', () => {
+  const cfg = getConfig();
+  cfgSheetId.value = cfg.sheetId;
+  cfgScriptUrl.value = cfg.scriptUrl;
+  modalBg.classList.add('show');
+});
+cfgCancel.addEventListener('click', () => modalBg.classList.remove('show'));
+cfgSave.addEventListener('click', () => {
+  saveConfig(cfgSheetId.value, cfgScriptUrl.value);
+  modalBg.classList.remove('show');
+  syncFromSheet(false);
+});
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      } else { field += c; }
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\r'){ /* ignore */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function setSyncStatus(msg){ if(syncStatusEl) syncStatusEl.textContent = msg; }
+
+async function syncFromSheet(silent){
+  const cfg = getConfig();
+  if(!cfg.sheetId){ setSyncStatus('Settings-এ Sheet ID বসাও ⚙'); return; }
+  if(!silent) setSyncStatus('Syncing…');
+  const url = 'https://docs.google.com/spreadsheets/d/' + cfg.sheetId + '/export?format=csv&gid=0';
+  try{
+    const res = await fetch(url, { cache: 'no-store' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    let startIdx = 0;
+    if(rows.length && /medicine|name/i.test(rows[0][0] || '')) startIdx = 1;
+    const newItems = [];
+    for(let i = startIdx; i < rows.length; i++){
+      const r = rows[i];
+      if(!r || r.length < 2) continue;
+      const name = (r[0] || '').trim();
+      const stockRaw = (r[1] || '').trim().replace(/,/g, '');
+      const stock = parseFloat(stockRaw);
+      const priceRaw = (r[2] || '').trim().replace(/,/g, '');
+      const price = parseFloat(priceRaw);
+      if(!name || isNaN(stock)) continue;
+      newItems.push({ name: name.toUpperCase(), stock, price: isNaN(price) ? 0 : price });
+    }
+    if(newItems.length > 0){
+      ITEMS = newItems;
+      renderResults();
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      setSyncStatus('Synced ✓ ' + ITEMS.length + ' items (' + hh + ':' + mm + ')');
+    } else {
+      setSyncStatus('Sync failed — কোনো row পাওয়া যায়নি');
+    }
+  } catch(err){
+    setSyncStatus('Offline — আগের ডাটা দেখানো হচ্ছে');
+  }
+}
+
+function renderResults(){
+  const q = searchInput.value.trim().toUpperCase();
+  resultsEl.innerHTML = '';
+  if(!q){ return; }
+  let list = ITEMS.filter(it => it.name.includes(q)).slice(0, 40);
+
+  if(list.length === 0){
+    resultsEl.innerHTML = '<div class="empty">কোনো medicine পাওয়া যায়নি।</div>';
+    return;
+  }
+
+  list.forEach((item) => {
+    const low = item.stock <= 5;
+    const row = document.createElement('div');
+    row.className = 'result-item';
+    row.innerHTML = `
+      <div>
+        <div class="r-name">${item.name}</div>
+        <div class="r-stock ${low ? 'low' : ''}">Stock: ${item.stock}${low ? ' (কম!)' : ''} &nbsp;•&nbsp; Rs. ${item.price}</div>
+      </div>
+      <button class="r-add">+</button>
+    `;
+    row.querySelector('.r-add').addEventListener('click', () => addToBill(item));
+    resultsEl.appendChild(row);
+  });
+}
+
+function addToBill(item){
+  const existing = bill.find(b => b.name === item.name);
+  if(existing){
+    existing.qty += 1;
+  } else {
+    bill.push({ name: item.name, price: item.price, qty: 1, stock: item.stock });
+  }
+  renderBill();
+}
+
+function renderBill(){
+  billCard.innerHTML = '';
+  itemCountEl.textContent = bill.length + ' items';
+  checkoutMsg.textContent = '';
+
+  if(bill.length === 0){
+    billCard.innerHTML = '<div class="bill-empty">কোনো medicine যোগ করা হয়নি।<br>উপরে সার্চ করে + ট্যাপ করো।</div>';
+    currentTotal = 0;
+    totalAmtEl.textContent = formatRs(0);
+    updateNetAmount();
+    checkoutBtn.disabled = true;
+    return;
+  }
+  checkoutBtn.disabled = false;
+
+  let total = 0;
+  bill.forEach((b, idx) => {
+    const lineTotal = b.qty * b.price;
+    total += lineTotal;
+    const row = document.createElement('div');
+    row.className = 'bill-row';
+    row.innerHTML = `
+      <div>
+        <div class="b-name">${b.name}</div>
+        <div class="b-price">Rs. ${b.price} / unit</div>
+      </div>
+      <input type="number" class="b-qty" min="1" value="${b.qty}" data-idx="${idx}" />
+      <div class="b-linetotal">Rs. ${lineTotal}</div>
+      <button class="b-remove" data-idx="${idx}">✕</button>
+    `;
+    row.querySelector('.b-qty').addEventListener('input', (e) => {
+      let v = parseFloat(e.target.value);
+      if(isNaN(v) || v < 1) v = 1;
+      bill[idx].qty = v;
+      renderBill();
+    });
+    row.querySelector('.b-remove').addEventListener('click', () => {
+      bill.splice(idx, 1);
+      renderBill();
+    });
+    billCard.appendChild(row);
+  });
+
+  currentTotal = total;
+  totalAmtEl.textContent = formatRs(total);
+  updateNetAmount();
+}
+
+function updateNetAmount(){
+  let discount = parseFloat(discountInput.value);
+  if(isNaN(discount) || discount < 0) discount = 0;
+  let net = currentTotal - discount;
+  if(net < 0) net = 0;
+  netAmtEl.textContent = formatRs(net);
+}
+
+discountInput.addEventListener('input', updateNetAmount);
+
+clearAllBtn.addEventListener('click', () => {
+  if(bill.length === 0) return;
+  if(confirm('বিল থেকে সব মুছে ফেলবে?')){
+    bill = [];
+    discountInput.value = 0;
+    renderBill();
+  }
+});
+
+checkoutBtn.addEventListener('click', async () => {
+  const cfg = getConfig();
+  if(!cfg.scriptUrl){ checkoutMsg.textContent = 'Settings-এ Apps Script URL বসাও ⚙'; return; }
+  checkoutBtn.disabled = true;
+  checkoutMsg.textContent = 'Stock update হচ্ছে…';
+  let allOk = true;
+  for(const b of bill){
+    try{
+      const res = await fetch(cfg.scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name: b.name, qty: b.qty })
+      });
+      const data = await res.json();
+      if(!data.success){ allOk = false; }
+    } catch(err){ allOk = false; }
+  }
+  if(allOk){
+    checkoutMsg.textContent = 'বিল সম্পন্ন ✓ Stock আপডেট হয়ে গেছে';
+    bill = [];
+    discountInput.value = 0;
+    renderBill();
+    syncFromSheet(true);
+  } else {
+    checkoutMsg.textContent = 'কিছু item update করতে সমস্যা হয়েছে — আবার চেষ্টা করো';
+    checkoutBtn.disabled = false;
+  }
+});
+
+searchInput.addEventListener('input', renderResults);
+clearSearch.addEventListener('click', () => { searchInput.value=''; renderResults(); searchInput.focus(); });
+syncBtn.addEventListener('click', () => syncFromSheet(false));
+
+renderResults();
+renderBill();
+syncFromSheet(true);
+</script>
+</body>
+</html>
