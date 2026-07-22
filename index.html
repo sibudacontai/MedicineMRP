@@ -21,7 +21,7 @@
   header{padding:22px 20px 14px;position:relative;}
   .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--teal-dark);font-weight:bold;text-transform:uppercase;}
   h1{margin:2px 0 0;font-size:24px;font-weight:bold;}
-  h1 .hl-red{color:var(--stamp);}
+  .hl-red{color:var(--stamp);}
   .clinic-contact{
     margin:8px 0 0;text-align:center;font-weight:bold;font-size:13px;letter-spacing:0.03em;
     color:#fff;background:var(--teal-dark);padding:7px 10px;border-radius:10px;
@@ -33,9 +33,9 @@
     margin:14px 20px 0;background:#fff;border-radius:14px;padding:14px 16px;
     box-shadow:0 1px 3px rgba(15,60,45,.08);
   }
-  .invoice-row{display:flex;gap:10px;margin-bottom:8px;}
+  .invoice-row{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
   .invoice-row:last-child{margin-bottom:0;}
-  .invoice-field{flex:1;}
+  .invoice-field{flex:1;min-width:110px;}
   .invoice-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;}
   .invoice-field input{width:100%;border:2px solid #d3e6de;border-radius:8px;padding:8px 9px;font-size:13.5px;font-family:Arial,Helvetica,sans-serif;color:#173229;}
   .invoice-field input:focus{outline:none;border-color:var(--teal);}
@@ -85,7 +85,9 @@
   .total-bar-inner{max-width:540px;margin:0 auto;}
   .total-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px;}
   .total-row.net{font-size:18px;font-weight:bold;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:8px;}
-  .total-row input{width:90px;border:none;border-radius:8px;padding:6px 8px;text-align:right;font-size:14px;font-family:Arial,Helvetica,sans-serif;}
+  .total-row input{width:70px;border:none;border-radius:8px;padding:6px 8px;text-align:right;font-size:14px;font-family:Arial,Helvetica,sans-serif;}
+  .discount-inputs{display:flex;gap:6px;align-items:center;}
+  .discount-inputs select{border:none;border-radius:8px;padding:6px 6px;font-size:13px;font-family:Arial,Helvetica,sans-serif;color:var(--teal-dark);font-weight:bold;}
   .bill-btns{display:flex;gap:8px;margin-top:10px;}
   .bill-btns button{flex:1;border:none;border-radius:10px;padding:11px;font-weight:bold;font-size:13.5px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}
   #clearAll{background:rgba(255,255,255,.15);color:#fff;}
@@ -110,22 +112,22 @@
   /* Print receipt (hidden on screen, shown on print) */
   #printArea{display:none;}
   @media print{
+    @page{ size: A5 landscape; margin: 10mm; }
     body *{visibility:hidden;}
     #printArea, #printArea *{visibility:visible;}
-    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:20px;}
-    .p-head{text-align:center;margin-bottom:10px;}
-    .p-head h2{margin:0;font-size:20px;}
-    .p-head h2 .hl-red{color:var(--stamp);}
-    .p-head div{font-size:12px;margin-top:4px;}
-    .p-meta{display:flex;justify-content:space-between;font-size:12px;margin:10px 0;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:6px 0;}
-    .p-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;}
-    .p-table th{text-align:left;border-bottom:1px solid #333;padding:4px 2px;font-size:11px;text-transform:uppercase;}
-    .p-table td{padding:5px 2px;border-bottom:1px dotted #ccc;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:6px;}
+    .p-head{text-align:center;margin-bottom:8px;}
+    .p-head h2{margin:0;font-size:19px;}
+    .p-head div{font-size:11px;margin-top:3px;}
+    .p-meta{display:flex;justify-content:space-between;font-size:11px;margin:8px 0;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:5px 0;}
+    .p-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11.5px;}
+    .p-table th{text-align:left;border-bottom:1px solid #333;padding:3px 2px;font-size:10px;text-transform:uppercase;}
+    .p-table td{padding:4px 2px;border-bottom:1px dotted #ccc;}
     .p-table .num{text-align:right;}
-    .p-totals{margin-top:10px;font-size:13px;}
+    .p-totals{margin-top:8px;font-size:12px;max-width:260px;margin-left:auto;}
     .p-totals div{display:flex;justify-content:space-between;padding:2px 0;}
-    .p-totals .net{font-weight:bold;font-size:15px;border-top:1px solid #333;margin-top:4px;padding-top:6px;}
-    .p-footer{text-align:center;font-size:11px;color:#555;margin-top:16px;}
+    .p-totals .net{font-weight:bold;font-size:14px;border-top:1px solid #333;margin-top:4px;padding-top:5px;}
+    .p-footer{text-align:center;font-size:10px;color:#555;margin-top:12px;}
   }
 </style>
 </head>
@@ -152,8 +154,12 @@
     </div>
     <div class="invoice-row">
       <div class="invoice-field">
-        <label>Customer Name</label>
+        <label>Patient Name</label>
         <input type="text" id="customerName" placeholder="(optional)" />
+      </div>
+      <div class="invoice-field">
+        <label>Address</label>
+        <input type="text" id="customerAddress" placeholder="(optional)" />
       </div>
       <div class="invoice-field">
         <label>Mobile No</label>
@@ -194,12 +200,25 @@
 <div class="total-bar">
   <div class="total-bar-inner">
     <div class="total-row"><span>Total Amount</span><span id="totalAmt">Rs. 0</span></div>
-    <div class="total-row"><span>Discount</span><span>Rs. <input type="number" id="discountInput" min="0" value="0" /></span></div>
+    <div class="total-row">
+      <span>Discount</span>
+      <span class="discount-inputs">
+        <input type="number" id="discountInput" min="0" value="0" />
+        <select id="discountType">
+          <option value="flat">Rs.</option>
+          <option value="percent">%</option>
+        </select>
+      </span>
+    </div>
+    <div class="total-row" id="discountAmtRow" style="display:none;"><span>Discount Amount</span><span id="discountAmtDisplay">Rs. 0</span></div>
     <div class="total-row net"><span>Net Amount</span><span id="netAmt">Rs. 0</span></div>
     <div class="bill-btns">
       <button id="clearAll">Clear All</button>
-      <button id="printBtn" disabled>🖨 Print Bill</button>
-      <button id="checkoutBtn" disabled>Confirm & Reduce Stock</button>
+      <button id="printBtn" disabled>🖨 Print</button>
+      <button id="pdfBtn" disabled>📄 Save PDF</button>
+    </div>
+    <div class="bill-btns">
+      <button id="checkoutBtn" disabled style="flex:1;">Confirm & Reduce Stock</button>
     </div>
     <div id="checkoutMsg"></div>
   </div>
@@ -231,8 +250,11 @@
     <div><b>Date:</b> <span id="pDate"></span></div>
   </div>
   <div class="p-meta" id="pCustomerRow">
-    <div><b>Customer:</b> <span id="pCustomerName"></span></div>
+    <div><b>Patient:</b> <span id="pCustomerName"></span></div>
     <div><b>Mobile:</b> <span id="pCustomerMobile"></span></div>
+  </div>
+  <div class="p-meta" id="pAddressRow">
+    <div><b>Address:</b> <span id="pCustomerAddress"></span></div>
   </div>
   <table class="p-table">
     <thead><tr><th>Medicine</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
@@ -267,6 +289,9 @@ const billHeadRow = document.getElementById('billHeadRow');
 const itemCountEl = document.getElementById('itemCount');
 const totalAmtEl = document.getElementById('totalAmt');
 const discountInput = document.getElementById('discountInput');
+const discountTypeEl = document.getElementById('discountType');
+const discountAmtRow = document.getElementById('discountAmtRow');
+const discountAmtDisplay = document.getElementById('discountAmtDisplay');
 const netAmtEl = document.getElementById('netAmt');
 const clearAllBtn = document.getElementById('clearAll');
 const checkoutBtn = document.getElementById('checkoutBtn');
@@ -276,6 +301,8 @@ const invoiceNoEl = document.getElementById('invoiceNo');
 const invoiceDateEl = document.getElementById('invoiceDate');
 const customerNameEl = document.getElementById('customerName');
 const customerMobileEl = document.getElementById('customerMobile');
+const customerAddressEl = document.getElementById('customerAddress');
+const pdfBtn = document.getElementById('pdfBtn');
 
 function formatRs(n){ return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
 
@@ -435,11 +462,13 @@ function renderBill(){
     updateNetAmount();
     checkoutBtn.disabled = true;
     printBtn.disabled = true;
+    pdfBtn.disabled = true;
     return;
   }
   billHeadRow.style.display = 'flex';
   checkoutBtn.disabled = false;
   printBtn.disabled = false;
+  pdfBtn.disabled = false;
 
   let total = 0;
   bill.forEach((b, idx) => {
@@ -474,32 +503,53 @@ function renderBill(){
   updateNetAmount();
 }
 
+function computeDiscountAmount(){
+  let raw = parseFloat(discountInput.value);
+  if(isNaN(raw) || raw < 0) raw = 0;
+  let discAmt;
+  if(discountTypeEl.value === 'percent'){
+    if(raw > 100) raw = 100;
+    discAmt = currentTotal * raw / 100;
+  } else {
+    discAmt = raw;
+  }
+  if(discAmt > currentTotal) discAmt = currentTotal;
+  return Math.round(discAmt * 100) / 100;
+}
+
 function updateNetAmount(){
-  let discount = parseFloat(discountInput.value);
-  if(isNaN(discount) || discount < 0) discount = 0;
-  let net = currentTotal - discount;
+  const discAmt = computeDiscountAmount();
+  if(discountTypeEl.value === 'percent'){
+    discountAmtRow.style.display = 'flex';
+    discountAmtDisplay.textContent = formatRs(discAmt);
+  } else {
+    discountAmtRow.style.display = 'none';
+  }
+  let net = currentTotal - discAmt;
   if(net < 0) net = 0;
   netAmtEl.textContent = formatRs(net);
 }
 
 discountInput.addEventListener('input', updateNetAmount);
+discountTypeEl.addEventListener('change', updateNetAmount);
 
 clearAllBtn.addEventListener('click', () => {
   if(bill.length === 0) return;
   if(confirm('বিল থেকে সব মুছে ফেলবে?')){
     bill = [];
     discountInput.value = 0;
+    discountTypeEl.value = 'flat';
     renderBill();
   }
 });
 
-/* ---------- Print ---------- */
-printBtn.addEventListener('click', () => {
-  if(bill.length === 0) return;
+/* ---------- Print / Save PDF (both open the browser print dialog; choose "Save as PDF" as the printer) ---------- */
+function preparePrintArea(){
   document.getElementById('pInvoiceNo').textContent = invoiceNoEl.value;
   document.getElementById('pDate').textContent = invoiceDateEl.value;
   document.getElementById('pCustomerName').textContent = customerNameEl.value || '—';
   document.getElementById('pCustomerMobile').textContent = customerMobileEl.value || '—';
+  document.getElementById('pCustomerAddress').textContent = customerAddressEl.value || '—';
 
   const tbody = document.getElementById('pTableBody');
   tbody.innerHTML = '';
@@ -509,14 +559,23 @@ printBtn.addEventListener('click', () => {
     tbody.appendChild(tr);
   });
 
-  let discount = parseFloat(discountInput.value);
-  if(isNaN(discount) || discount < 0) discount = 0;
-  let net = currentTotal - discount;
+  const discAmt = computeDiscountAmount();
+  let net = currentTotal - discAmt;
   if(net < 0) net = 0;
   document.getElementById('pTotal').textContent = formatRs(currentTotal);
-  document.getElementById('pDiscount').textContent = formatRs(discount);
+  document.getElementById('pDiscount').textContent = formatRs(discAmt);
   document.getElementById('pNet').textContent = formatRs(net);
+}
 
+printBtn.addEventListener('click', () => {
+  if(bill.length === 0) return;
+  preparePrintArea();
+  window.print();
+});
+
+pdfBtn.addEventListener('click', () => {
+  if(bill.length === 0) return;
+  preparePrintArea();
   window.print();
 });
 
@@ -542,11 +601,13 @@ checkoutBtn.addEventListener('click', async () => {
     checkoutMsg.textContent = 'বিল সম্পন্ন ✓ Stock আপডেট হয়ে গেছে';
     bill = [];
     discountInput.value = 0;
+    discountTypeEl.value = 'flat';
     renderBill();
     syncFromSheet(true);
     initInvoice();
     customerNameEl.value = '';
     customerMobileEl.value = '';
+    customerAddressEl.value = '';
   } else {
     checkoutMsg.textContent = 'কিছু item update করতে সমস্যা হয়েছে — আবার চেষ্টা করো';
     checkoutBtn.disabled = false;
