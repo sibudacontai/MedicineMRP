@@ -57,6 +57,7 @@
   .r-name{font-weight:bold;font-size:14.5px;}
   .r-stock{font-size:12.5px;color:var(--muted);margin-top:2px;}
   .r-stock.low{color:var(--stamp);font-weight:bold;}
+  .r-batch{font-size:11px;color:var(--muted-2);margin-top:1px;}
   .r-add{background:var(--teal);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;line-height:1;flex-shrink:0;}
   .empty{text-align:center;color:var(--muted-2);padding:20px 10px;font-size:14px;}
 
@@ -78,6 +79,7 @@
   .b-info{flex:1;min-width:0;}
   .b-name{font-size:13.5px;font-weight:bold;}
   .b-price{font-size:11.5px;color:var(--muted);}
+  .b-batch{font-size:10.5px;color:var(--muted-2);margin-top:1px;}
   .b-qty{width:52px;border:2px solid #d3e6de;border-radius:8px;padding:5px;text-align:center;font-size:14px;}
   .b-linetotal{width:74px;text-align:right;font-size:13.5px;font-weight:bold;}
   .b-remove{border:none;background:none;color:var(--stamp);font-size:16px;cursor:pointer;padding:0 2px;width:20px;flex-shrink:0;}
@@ -279,7 +281,7 @@
     <div><b>Address:</b> <span id="pCustomerAddress"></span></div>
   </div>
   <table class="p-table">
-    <thead><tr><th>Medicine</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
+    <thead><tr><th>Medicine</th><th>Batch No</th><th>Exp Date</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
     <tbody id="pTableBody"></tbody>
   </table>
   <div class="p-totals">
@@ -415,8 +417,10 @@ async function syncFromSheet(silent){
       const stock = parseFloat(stockRaw);
       const priceRaw = (r[2] || '').trim().replace(/,/g, '');
       const price = parseFloat(priceRaw);
+      const batchNo = (r[3] || '').trim();
+      const expDate = (r[4] || '').trim();
       if(!name || isNaN(stock)) continue;
-      newItems.push({ name: name.toUpperCase(), stock, price: isNaN(price) ? 0 : price });
+      newItems.push({ name: name.toUpperCase(), stock, price: isNaN(price) ? 0 : price, batchNo, expDate });
     }
     if(newItems.length > 0){
       ITEMS = newItems;
@@ -447,12 +451,16 @@ function renderResults(){
 
   list.forEach((item) => {
     const low = item.stock <= 5;
+    const batchLine = (item.batchNo || item.expDate)
+      ? `<div class="r-batch">${item.batchNo ? 'Batch: ' + item.batchNo : ''}${item.batchNo && item.expDate ? ' &nbsp;•&nbsp; ' : ''}${item.expDate ? 'Exp: ' + item.expDate : ''}</div>`
+      : '';
     const row = document.createElement('div');
     row.className = 'result-item';
     row.innerHTML = `
       <div>
         <div class="r-name">${item.name}</div>
         <div class="r-stock ${low ? 'low' : ''}">Stock: ${item.stock}${low ? ' (কম!)' : ''} &nbsp;•&nbsp; Rs. ${item.price}</div>
+        ${batchLine}
       </div>
       <button class="r-add">+</button>
     `;
@@ -466,7 +474,7 @@ function addToBill(item){
   if(existing){
     existing.qty += 1;
   } else {
-    bill.push({ name: item.name, price: item.price, qty: 1, stock: item.stock });
+    bill.push({ name: item.name, price: item.price, qty: 1, stock: item.stock, batchNo: item.batchNo, expDate: item.expDate });
   }
   renderBill();
 }
@@ -501,10 +509,14 @@ function renderBill(){
     total += lineTotal;
     const row = document.createElement('div');
     row.className = 'bill-row';
+    const batchLine = (b.batchNo || b.expDate)
+      ? `<div class="b-batch">${b.batchNo ? 'Batch: ' + b.batchNo : ''}${b.batchNo && b.expDate ? ' &nbsp;•&nbsp; ' : ''}${b.expDate ? 'Exp: ' + b.expDate : ''}</div>`
+      : '';
     row.innerHTML = `
       <div class="b-info">
         <div class="b-name">${b.name}</div>
         <div class="b-price">Rs. ${b.price} / unit</div>
+        ${batchLine}
       </div>
       <input type="number" class="b-qty" min="1" value="${b.qty}" data-idx="${idx}" />
       <div class="b-linetotal">Rs. ${lineTotal}</div>
@@ -580,7 +592,7 @@ function preparePrintArea(){
   tbody.innerHTML = '';
   bill.forEach(b => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${b.name}</td><td class="num">${b.qty}</td><td class="num">${b.price}</td><td class="num">${b.qty * b.price}</td>`;
+    tr.innerHTML = `<td>${b.name}</td><td>${b.batchNo || '—'}</td><td>${b.expDate || '—'}</td><td class="num">${b.qty}</td><td class="num">${b.price}</td><td class="num">${b.qty * b.price}</td>`;
     tbody.appendChild(tr);
   });
 
