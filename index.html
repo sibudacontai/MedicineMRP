@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CareOn Medical — Pharmacy Billing</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --teal:#0F9D72;
@@ -93,7 +95,8 @@
   #clearAll{background:rgba(255,255,255,.15);color:#fff;}
   #printBtn{background:rgba(255,255,255,.15);color:#fff;}
   #checkoutBtn{background:#fff;color:var(--teal-dark);}
-  #checkoutBtn:disabled, #printBtn:disabled{opacity:.45;}
+  #whatsappBtn{background:#25D366;color:#fff;flex:1;}
+  #checkoutBtn:disabled, #printBtn:disabled, #pdfBtn:disabled, #whatsappBtn:disabled{opacity:.45;}
   #checkoutMsg{font-size:12px;margin-top:6px;text-align:center;min-height:14px;}
 
   /* Settings modal */
@@ -109,25 +112,31 @@
   .modal .save{background:var(--teal);color:#fff;}
   .modal .cancel{background:#eee;color:#333;}
 
-  /* Print receipt (hidden on screen, shown on print) */
-  #printArea{display:none;}
+  /* Print/PDF receipt — always laid out off-screen so html2canvas can capture it;
+     brought on-screen only during actual printing via @media print below. */
+  #printArea{
+    position:absolute; left:-9999px; top:0;
+    width:700px; background:#fff; padding:20px; color:#173229;
+    font-family:Arial,Helvetica,sans-serif;
+  }
+  .p-head{text-align:center;margin-bottom:10px;}
+  .p-head h2{margin:0;font-size:22px;}
+  .p-head div{font-size:12px;margin-top:4px;}
+  .p-meta{display:flex;justify-content:space-between;font-size:12px;margin:8px 0;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:6px 0;}
+  .p-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+  .p-table th{text-align:left;border-bottom:1px solid #333;padding:4px 3px;font-size:11px;text-transform:uppercase;}
+  .p-table td{padding:5px 3px;border-bottom:1px dotted #ccc;}
+  .p-table .num{text-align:right;}
+  .p-totals{margin-top:10px;font-size:13px;max-width:280px;margin-left:auto;}
+  .p-totals div{display:flex;justify-content:space-between;padding:2px 0;}
+  .p-totals .net{font-weight:bold;font-size:15px;border-top:1px solid #333;margin-top:4px;padding-top:6px;}
+  .p-footer{text-align:center;font-size:11px;color:#555;margin-top:14px;}
+
   @media print{
     @page{ size: A5 landscape; margin: 10mm; }
     body *{visibility:hidden;}
     #printArea, #printArea *{visibility:visible;}
-    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:6px;}
-    .p-head{text-align:center;margin-bottom:8px;}
-    .p-head h2{margin:0;font-size:19px;}
-    .p-head div{font-size:11px;margin-top:3px;}
-    .p-meta{display:flex;justify-content:space-between;font-size:11px;margin:8px 0;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:5px 0;}
-    .p-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:11.5px;}
-    .p-table th{text-align:left;border-bottom:1px solid #333;padding:3px 2px;font-size:10px;text-transform:uppercase;}
-    .p-table td{padding:4px 2px;border-bottom:1px dotted #ccc;}
-    .p-table .num{text-align:right;}
-    .p-totals{margin-top:8px;font-size:12px;max-width:260px;margin-left:auto;}
-    .p-totals div{display:flex;justify-content:space-between;padding:2px 0;}
-    .p-totals .net{font-weight:bold;font-size:14px;border-top:1px solid #333;margin-top:4px;padding-top:5px;}
-    .p-footer{text-align:center;font-size:10px;color:#555;margin-top:12px;}
+    #printArea{position:absolute;top:0;left:0;width:100%;}
   }
 </style>
 </head>
@@ -218,6 +227,9 @@
       <button id="pdfBtn" disabled>📄 Save PDF</button>
     </div>
     <div class="bill-btns">
+      <button id="whatsappBtn" disabled>📲 Send via WhatsApp</button>
+    </div>
+    <div class="bill-btns">
       <button id="checkoutBtn" disabled style="flex:1;">Confirm & Reduce Stock</button>
     </div>
     <div id="checkoutMsg"></div>
@@ -303,6 +315,7 @@ const customerNameEl = document.getElementById('customerName');
 const customerMobileEl = document.getElementById('customerMobile');
 const customerAddressEl = document.getElementById('customerAddress');
 const pdfBtn = document.getElementById('pdfBtn');
+const whatsappBtn = document.getElementById('whatsappBtn');
 
 function formatRs(n){ return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
 
@@ -463,12 +476,14 @@ function renderBill(){
     checkoutBtn.disabled = true;
     printBtn.disabled = true;
     pdfBtn.disabled = true;
+    whatsappBtn.disabled = true;
     return;
   }
   billHeadRow.style.display = 'flex';
   checkoutBtn.disabled = false;
   printBtn.disabled = false;
   pdfBtn.disabled = false;
+  whatsappBtn.disabled = false;
 
   let total = 0;
   bill.forEach((b, idx) => {
@@ -573,10 +588,75 @@ printBtn.addEventListener('click', () => {
   window.print();
 });
 
-pdfBtn.addEventListener('click', () => {
-  if(bill.length === 0) return;
+async function generatePdfBlob(){
   preparePrintArea();
-  window.print();
+  const printAreaEl = document.getElementById('printArea');
+  const canvas = await html2canvas(printAreaEl, { scale: 2, backgroundColor: '#ffffff' });
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a5' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const imgW = pageW - 14; // small margin
+  const imgH = (canvas.height * imgW) / canvas.width;
+  const finalH = Math.min(imgH, pageH - 14);
+  const finalW = (canvas.width * finalH) / canvas.height;
+  const x = (pageW - finalW) / 2;
+  const y = 7;
+  doc.addImage(imgData, 'JPEG', x, y, finalW, finalH);
+  return doc;
+}
+
+pdfBtn.addEventListener('click', async () => {
+  if(bill.length === 0) return;
+  const oldLabel = pdfBtn.textContent;
+  pdfBtn.textContent = 'তৈরি হচ্ছে…';
+  pdfBtn.disabled = true;
+  try{
+    const doc = await generatePdfBlob();
+    const fileName = 'Bill-' + invoiceNoEl.value + '.pdf';
+    doc.save(fileName);
+  } catch(err){
+    alert('PDF তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করো।');
+  } finally {
+    pdfBtn.textContent = oldLabel;
+    pdfBtn.disabled = bill.length === 0;
+  }
+});
+
+whatsappBtn.addEventListener('click', async () => {
+  if(bill.length === 0) return;
+  const oldLabel = whatsappBtn.textContent;
+  whatsappBtn.textContent = 'তৈরি হচ্ছে…';
+  whatsappBtn.disabled = true;
+  try{
+    const doc = await generatePdfBlob();
+    const fileName = 'Bill-' + invoiceNoEl.value + '.pdf';
+    const pdfBlob = doc.output('blob');
+    const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({
+        files: [file],
+        title: 'Bill ' + invoiceNoEl.value,
+        text: 'CareOn Medical — Bill ' + invoiceNoEl.value
+      });
+    } else {
+      // Fallback: browser can't share files directly — download the PDF
+      // and open WhatsApp so the user can attach it manually.
+      doc.save(fileName);
+      alert('এই ব্রাউজারে সরাসরি ফাইল শেয়ার করা যাচ্ছে না। PDF-টা Downloads-এ সেভ হয়েছে — এবার WhatsApp খুলে ম্যানুয়ালি অ্যাটাচ করে দাও।');
+      window.open('https://wa.me/', '_blank');
+    }
+  } catch(err){
+    if(err && err.name !== 'AbortError'){
+      alert('শেয়ার করতে সমস্যা হয়েছে। আবার চেষ্টা করো।');
+    }
+  } finally {
+    whatsappBtn.textContent = oldLabel;
+    whatsappBtn.disabled = bill.length === 0;
+  }
 });
 
 /* ---------- Checkout: reduce stock in sheet ---------- */
