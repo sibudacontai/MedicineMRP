@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Pharmacy Billing</title>
+<title>CareOn Medical — Pharmacy Billing</title>
 <style>
   :root{
     --teal:#0F9D72;
@@ -12,16 +12,37 @@
     --muted:#6b7c76;
     --muted-2:#9db0a9;
     --stamp:#C0392B;
+    --line:#e1eee8;
   }
   *{box-sizing:border-box;}
   body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#173229;}
-  #app{max-width:520px;margin:0 auto;padding-bottom:170px;}
+  #app{max-width:540px;margin:0 auto;padding-bottom:190px;}
+
   header{padding:22px 20px 14px;position:relative;}
   .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--teal-dark);font-weight:bold;text-transform:uppercase;}
   h1{margin:2px 0 0;font-size:24px;font-weight:bold;}
+  h1 .hl-red{color:var(--stamp);}
+  .clinic-contact{
+    margin:8px 0 0;text-align:center;font-weight:bold;font-size:13px;letter-spacing:0.03em;
+    color:#fff;background:var(--teal-dark);padding:7px 10px;border-radius:10px;
+  }
   .settings-btn{position:absolute;top:18px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--teal-dark);}
 
-  .search-wrap{padding:0 20px;}
+  /* Invoice info card */
+  .invoice-card{
+    margin:14px 20px 0;background:#fff;border-radius:14px;padding:14px 16px;
+    box-shadow:0 1px 3px rgba(15,60,45,.08);
+  }
+  .invoice-row{display:flex;gap:10px;margin-bottom:8px;}
+  .invoice-row:last-child{margin-bottom:0;}
+  .invoice-field{flex:1;}
+  .invoice-field label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:bold;text-transform:uppercase;letter-spacing:.03em;}
+  .invoice-field input{width:100%;border:2px solid #d3e6de;border-radius:8px;padding:8px 9px;font-size:13.5px;font-family:Arial,Helvetica,sans-serif;color:#173229;}
+  .invoice-field input:focus{outline:none;border-color:var(--teal);}
+  .invoice-field .readonly{background:#f4f9f7;color:var(--muted);}
+
+  /* Search */
+  .search-wrap{padding:14px 20px 0;}
   .search-box{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #d3e6de;border-radius:14px;padding:12px 14px;}
   .search-box:focus-within{border-color:var(--teal);}
   #searchInput{border:none;outline:none;flex:1;font-size:16px;background:none;color:#173229;}
@@ -30,48 +51,82 @@
   #syncBtn{border:none;background:none;color:var(--teal-dark);font-weight:bold;font-size:12px;padding:2px 4px;cursor:pointer;}
 
   .results{padding:10px 20px 0;display:flex;flex-direction:column;gap:8px;}
-  .result-item{background:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+  .result-item{background:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(15,60,45,.06);}
   .r-name{font-weight:bold;font-size:14.5px;}
   .r-stock{font-size:12.5px;color:var(--muted);margin-top:2px;}
   .r-stock.low{color:var(--stamp);font-weight:bold;}
-  .r-add{background:var(--teal);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:18px;cursor:pointer;line-height:1;}
+  .r-add{background:var(--teal);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;line-height:1;flex-shrink:0;}
   .empty{text-align:center;color:var(--muted-2);padding:20px 10px;font-size:14px;}
 
+  /* Bill */
   .bill-section{padding:16px 20px 0;}
   .bill-title{font-size:12px;letter-spacing:.06em;color:var(--teal-dark);font-weight:bold;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
   .bill-title .count{background:#d7ede4;color:var(--teal-dark);padding:2px 8px;border-radius:20px;font-size:11px;}
-  .bill-card{background:#fff;border-radius:14px;padding:6px 14px;}
+  .bill-card{background:#fff;border-radius:14px;padding:4px 14px;box-shadow:0 1px 3px rgba(15,60,45,.08);}
   .bill-empty{text-align:center;color:var(--muted-2);padding:24px 10px;font-size:13.5px;}
-  .bill-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #eef4f1;}
+
+  .bill-head-row{display:flex;gap:8px;padding:10px 0 6px;font-size:10.5px;color:var(--muted);font-weight:bold;text-transform:uppercase;letter-spacing:.02em;border-bottom:1px solid var(--line);}
+  .bill-head-row .col-name{flex:1;}
+  .bill-head-row .col-qty{width:52px;text-align:center;}
+  .bill-head-row .col-total{width:74px;text-align:right;}
+  .bill-head-row .col-x{width:20px;}
+
+  .bill-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);}
   .bill-row:last-child{border-bottom:none;}
-  .b-name{flex:1;font-size:13.5px;font-weight:bold;}
-  .b-price{font-size:12px;color:var(--muted);}
+  .b-info{flex:1;min-width:0;}
+  .b-name{font-size:13.5px;font-weight:bold;}
+  .b-price{font-size:11.5px;color:var(--muted);}
   .b-qty{width:52px;border:2px solid #d3e6de;border-radius:8px;padding:5px;text-align:center;font-size:14px;}
-  .b-linetotal{width:70px;text-align:right;font-size:13.5px;font-weight:bold;}
-  .b-remove{border:none;background:none;color:var(--stamp);font-size:16px;cursor:pointer;padding:0 2px;}
+  .b-linetotal{width:74px;text-align:right;font-size:13.5px;font-weight:bold;}
+  .b-remove{border:none;background:none;color:var(--stamp);font-size:16px;cursor:pointer;padding:0 2px;width:20px;flex-shrink:0;}
 
-  .total-bar{position:fixed;bottom:0;left:0;right:0;background:var(--teal-dark);color:#fff;padding:14px 20px 18px;}
-  .total-bar-inner{max-width:520px;margin:0 auto;}
+  /* Totals bar */
+  .total-bar{position:fixed;bottom:0;left:0;right:0;background:var(--teal-dark);color:#fff;padding:14px 20px 18px;box-shadow:0 -2px 10px rgba(0,0,0,.12);}
+  .total-bar-inner{max-width:540px;margin:0 auto;}
   .total-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px;}
-  .total-row.net{font-size:17px;font-weight:bold;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:8px;}
-  .total-row input{width:90px;border:none;border-radius:8px;padding:6px 8px;text-align:right;font-size:14px;}
+  .total-row.net{font-size:18px;font-weight:bold;border-top:1px solid rgba(255,255,255,.25);margin-top:4px;padding-top:8px;}
+  .total-row input{width:90px;border:none;border-radius:8px;padding:6px 8px;text-align:right;font-size:14px;font-family:Arial,Helvetica,sans-serif;}
   .bill-btns{display:flex;gap:8px;margin-top:10px;}
-  .bill-btns button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:bold;font-size:13.5px;cursor:pointer;}
+  .bill-btns button{flex:1;border:none;border-radius:10px;padding:11px;font-weight:bold;font-size:13.5px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}
   #clearAll{background:rgba(255,255,255,.15);color:#fff;}
+  #printBtn{background:rgba(255,255,255,.15);color:#fff;}
   #checkoutBtn{background:#fff;color:var(--teal-dark);}
-  #checkoutBtn:disabled{opacity:.5;}
-  #checkoutMsg{font-size:12px;margin-top:6px;text-align:center;}
+  #checkoutBtn:disabled, #printBtn:disabled{opacity:.45;}
+  #checkoutMsg{font-size:12px;margin-top:6px;text-align:center;min-height:14px;}
 
-  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:50;}
+  /* Settings modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:60;}
   .modal-bg.show{display:flex;}
   .modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:420px;}
   .modal h2{margin:0 0 12px;font-size:17px;}
-  .modal label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;}
-  .modal input{width:100%;border:2px solid #d3e6de;border-radius:10px;padding:9px;font-size:13px;}
+  .modal label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;font-weight:bold;}
+  .modal input{width:100%;border:2px solid #d3e6de;border-radius:10px;padding:9px;font-size:13px;font-family:Arial,Helvetica,sans-serif;}
+  .modal .hint{font-size:11px;color:var(--muted-2);margin-top:4px;line-height:1.4;}
   .modal .btn-row{display:flex;gap:8px;margin-top:16px;}
-  .modal button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:bold;font-size:14px;cursor:pointer;}
+  .modal button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:bold;font-size:14px;cursor:pointer;font-family:Arial,Helvetica,sans-serif;}
   .modal .save{background:var(--teal);color:#fff;}
   .modal .cancel{background:#eee;color:#333;}
+
+  /* Print receipt (hidden on screen, shown on print) */
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:20px;}
+    .p-head{text-align:center;margin-bottom:10px;}
+    .p-head h2{margin:0;font-size:20px;}
+    .p-head h2 .hl-red{color:var(--stamp);}
+    .p-head div{font-size:12px;margin-top:4px;}
+    .p-meta{display:flex;justify-content:space-between;font-size:12px;margin:10px 0;border-top:1px dashed #999;border-bottom:1px dashed #999;padding:6px 0;}
+    .p-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px;}
+    .p-table th{text-align:left;border-bottom:1px solid #333;padding:4px 2px;font-size:11px;text-transform:uppercase;}
+    .p-table td{padding:5px 2px;border-bottom:1px dotted #ccc;}
+    .p-table .num{text-align:right;}
+    .p-totals{margin-top:10px;font-size:13px;}
+    .p-totals div{display:flex;justify-content:space-between;padding:2px 0;}
+    .p-totals .net{font-weight:bold;font-size:15px;border-top:1px solid #333;margin-top:4px;padding-top:6px;}
+    .p-footer{text-align:center;font-size:11px;color:#555;margin-top:16px;}
+  }
 </style>
 </head>
 <body>
@@ -79,9 +134,33 @@
 
   <header>
     <div class="eyebrow">Pharmacy · Billing</div>
-    <h1>Medicine Bill</h1>
+    <h1>Care<span class="hl-red">On</span> Medical</h1>
+    <div class="clinic-contact">CONTAI :: MOB. - 9933335131</div>
     <button class="settings-btn" id="settingsBtn">⚙</button>
   </header>
+
+  <div class="invoice-card">
+    <div class="invoice-row">
+      <div class="invoice-field">
+        <label>Invoice No</label>
+        <input type="text" id="invoiceNo" class="readonly" readonly />
+      </div>
+      <div class="invoice-field">
+        <label>Date</label>
+        <input type="text" id="invoiceDate" class="readonly" readonly />
+      </div>
+    </div>
+    <div class="invoice-row">
+      <div class="invoice-field">
+        <label>Customer Name</label>
+        <input type="text" id="customerName" placeholder="(optional)" />
+      </div>
+      <div class="invoice-field">
+        <label>Mobile No</label>
+        <input type="text" id="customerMobile" placeholder="(optional)" />
+      </div>
+    </div>
+  </div>
 
   <div class="search-wrap">
     <div class="search-box">
@@ -98,8 +177,16 @@
   <div class="results" id="results"></div>
 
   <div class="bill-section">
-    <div class="bill-title"><span>BILL</span><span class="count" id="itemCount">0 items</span></div>
-    <div class="bill-card" id="billCard"></div>
+    <div class="bill-title"><span>BILL ITEMS</span><span class="count" id="itemCount">0 items</span></div>
+    <div class="bill-card">
+      <div class="bill-head-row" id="billHeadRow" style="display:none;">
+        <span class="col-name">Medicine</span>
+        <span class="col-qty">Qty</span>
+        <span class="col-total">Amount</span>
+        <span class="col-x"></span>
+      </div>
+      <div id="billCard"></div>
+    </div>
   </div>
 
 </div>
@@ -107,11 +194,12 @@
 <div class="total-bar">
   <div class="total-bar-inner">
     <div class="total-row"><span>Total Amount</span><span id="totalAmt">Rs. 0</span></div>
-    <div class="total-row"><span>Discount</span><span><select id="discountType"><option value="amount">₹</option><option value="percent">%</option></select> <input type="number" id="discountInput" min="0" value="0" style="width:70px"/></span></div>
+    <div class="total-row"><span>Discount</span><span>Rs. <input type="number" id="discountInput" min="0" value="0" /></span></div>
     <div class="total-row net"><span>Net Amount</span><span id="netAmt">Rs. 0</span></div>
     <div class="bill-btns">
       <button id="clearAll">Clear All</button>
-      <button id="checkoutBtn">Confirm & Reduce Stock</button>
+      <button id="printBtn" disabled>🖨 Print Bill</button>
+      <button id="checkoutBtn" disabled>Confirm & Reduce Stock</button>
     </div>
     <div id="checkoutMsg"></div>
   </div>
@@ -122,13 +210,40 @@
     <h2>Settings</h2>
     <label>Google Sheet ID</label>
     <input id="cfgSheetId" placeholder="e.g. 1Zve1CCoApww70d_..." />
-    <label>Apps Script Web App URL (for reducing stock)</label>
+    <label>Apps Script Web App URL</label>
     <input id="cfgScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+    <div class="hint">Sheet columns: A = Medicine Name, B = Stock Qty, C = Price. Sheet must be shared as "Anyone with the link — Viewer".</div>
     <div class="btn-row">
       <button class="cancel" id="cfgCancel">Cancel</button>
       <button class="save" id="cfgSave">Save</button>
     </div>
   </div>
+</div>
+
+<!-- Print receipt -->
+<div id="printArea">
+  <div class="p-head">
+    <h2>Care<span class="hl-red">On</span> Medical</h2>
+    <div>CONTAI :: MOB. - 9933335131</div>
+  </div>
+  <div class="p-meta">
+    <div><b>Invoice:</b> <span id="pInvoiceNo"></span></div>
+    <div><b>Date:</b> <span id="pDate"></span></div>
+  </div>
+  <div class="p-meta" id="pCustomerRow">
+    <div><b>Customer:</b> <span id="pCustomerName"></span></div>
+    <div><b>Mobile:</b> <span id="pCustomerMobile"></span></div>
+  </div>
+  <table class="p-table">
+    <thead><tr><th>Medicine</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
+    <tbody id="pTableBody"></tbody>
+  </table>
+  <div class="p-totals">
+    <div><span>Total Amount</span><span id="pTotal"></span></div>
+    <div><span>Discount</span><span id="pDiscount"></span></div>
+    <div class="net"><span>Net Amount</span><span id="pNet"></span></div>
+  </div>
+  <div class="p-footer">Thank you. Get well soon.</div>
 </div>
 
 <script>
@@ -148,17 +263,38 @@ const cfgScriptUrl = document.getElementById('cfgScriptUrl');
 const cfgSave = document.getElementById('cfgSave');
 const cfgCancel = document.getElementById('cfgCancel');
 const billCard = document.getElementById('billCard');
+const billHeadRow = document.getElementById('billHeadRow');
 const itemCountEl = document.getElementById('itemCount');
 const totalAmtEl = document.getElementById('totalAmt');
 const discountInput = document.getElementById('discountInput');
 const netAmtEl = document.getElementById('netAmt');
-const discountType=document.getElementById('discountType');
 const clearAllBtn = document.getElementById('clearAll');
 const checkoutBtn = document.getElementById('checkoutBtn');
+const printBtn = document.getElementById('printBtn');
 const checkoutMsg = document.getElementById('checkoutMsg');
+const invoiceNoEl = document.getElementById('invoiceNo');
+const invoiceDateEl = document.getElementById('invoiceDate');
+const customerNameEl = document.getElementById('customerName');
+const customerMobileEl = document.getElementById('customerMobile');
 
 function formatRs(n){ return 'Rs. ' + Number(n).toLocaleString('en-IN'); }
 
+/* ---------- Invoice number & date ---------- */
+function initInvoice(){
+  const d = new Date();
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  invoiceDateEl.value = `${dd}/${mm}/${yyyy}`;
+
+  let counter = parseInt(localStorage.getItem('pharm_invoice_counter') || '0', 10);
+  counter += 1;
+  localStorage.setItem('pharm_invoice_counter', String(counter));
+  const yy = String(yyyy).slice(-2);
+  invoiceNoEl.value = `CO${yy}-${String(counter).padStart(4,'0')}`;
+}
+
+/* ---------- Config ---------- */
 function getConfig(){
   return {
     sheetId: localStorage.getItem('pharm_sheet_id') || '',
@@ -183,6 +319,7 @@ cfgSave.addEventListener('click', () => {
   syncFromSheet(false);
 });
 
+/* ---------- CSV parsing ---------- */
 function parseCSV(text){
   const rows = [];
   let row = [], field = '', inQuotes = false;
@@ -246,6 +383,7 @@ async function syncFromSheet(silent){
   }
 }
 
+/* ---------- Search results ---------- */
 function renderResults(){
   const q = searchInput.value.trim().toUpperCase();
   resultsEl.innerHTML = '';
@@ -283,6 +421,7 @@ function addToBill(item){
   renderBill();
 }
 
+/* ---------- Bill rendering ---------- */
 function renderBill(){
   billCard.innerHTML = '';
   itemCountEl.textContent = bill.length + ' items';
@@ -290,13 +429,17 @@ function renderBill(){
 
   if(bill.length === 0){
     billCard.innerHTML = '<div class="bill-empty">কোনো medicine যোগ করা হয়নি।<br>উপরে সার্চ করে + ট্যাপ করো।</div>';
+    billHeadRow.style.display = 'none';
     currentTotal = 0;
     totalAmtEl.textContent = formatRs(0);
     updateNetAmount();
     checkoutBtn.disabled = true;
+    printBtn.disabled = true;
     return;
   }
+  billHeadRow.style.display = 'flex';
   checkoutBtn.disabled = false;
+  printBtn.disabled = false;
 
   let total = 0;
   bill.forEach((b, idx) => {
@@ -305,7 +448,7 @@ function renderBill(){
     const row = document.createElement('div');
     row.className = 'bill-row';
     row.innerHTML = `
-      <div>
+      <div class="b-info">
         <div class="b-name">${b.name}</div>
         <div class="b-price">Rs. ${b.price} / unit</div>
       </div>
@@ -332,16 +475,14 @@ function renderBill(){
 }
 
 function updateNetAmount(){
-  let discount=parseFloat(discountInput.value); if(isNaN(discount)||discount<0) discount=0;
-  let net=currentTotal;
-  if(discountType.value==='percent'){ net=currentTotal-(currentTotal*discount/100);}
-  else{ net=currentTotal-discount;}
-  if(net<0) net=0;
-  netAmtEl.textContent=formatRs(net);
+  let discount = parseFloat(discountInput.value);
+  if(isNaN(discount) || discount < 0) discount = 0;
+  let net = currentTotal - discount;
+  if(net < 0) net = 0;
+  netAmtEl.textContent = formatRs(net);
 }
 
 discountInput.addEventListener('input', updateNetAmount);
-discountType.addEventListener('change', updateNetAmount);
 
 clearAllBtn.addEventListener('click', () => {
   if(bill.length === 0) return;
@@ -352,6 +493,34 @@ clearAllBtn.addEventListener('click', () => {
   }
 });
 
+/* ---------- Print ---------- */
+printBtn.addEventListener('click', () => {
+  if(bill.length === 0) return;
+  document.getElementById('pInvoiceNo').textContent = invoiceNoEl.value;
+  document.getElementById('pDate').textContent = invoiceDateEl.value;
+  document.getElementById('pCustomerName').textContent = customerNameEl.value || '—';
+  document.getElementById('pCustomerMobile').textContent = customerMobileEl.value || '—';
+
+  const tbody = document.getElementById('pTableBody');
+  tbody.innerHTML = '';
+  bill.forEach(b => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${b.name}</td><td class="num">${b.qty}</td><td class="num">${b.price}</td><td class="num">${b.qty * b.price}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  let discount = parseFloat(discountInput.value);
+  if(isNaN(discount) || discount < 0) discount = 0;
+  let net = currentTotal - discount;
+  if(net < 0) net = 0;
+  document.getElementById('pTotal').textContent = formatRs(currentTotal);
+  document.getElementById('pDiscount').textContent = formatRs(discount);
+  document.getElementById('pNet').textContent = formatRs(net);
+
+  window.print();
+});
+
+/* ---------- Checkout: reduce stock in sheet ---------- */
 checkoutBtn.addEventListener('click', async () => {
   const cfg = getConfig();
   if(!cfg.scriptUrl){ checkoutMsg.textContent = 'Settings-এ Apps Script URL বসাও ⚙'; return; }
@@ -375,6 +544,9 @@ checkoutBtn.addEventListener('click', async () => {
     discountInput.value = 0;
     renderBill();
     syncFromSheet(true);
+    initInvoice();
+    customerNameEl.value = '';
+    customerMobileEl.value = '';
   } else {
     checkoutMsg.textContent = 'কিছু item update করতে সমস্যা হয়েছে — আবার চেষ্টা করো';
     checkoutBtn.disabled = false;
@@ -385,6 +557,7 @@ searchInput.addEventListener('input', renderResults);
 clearSearch.addEventListener('click', () => { searchInput.value=''; renderResults(); searchInput.focus(); });
 syncBtn.addEventListener('click', () => syncFromSheet(false));
 
+initInvoice();
 renderResults();
 renderBill();
 syncFromSheet(true);
