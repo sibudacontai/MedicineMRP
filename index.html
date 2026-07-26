@@ -143,10 +143,19 @@
   .p-footer{text-align:center;font-size:11px;color:#555;margin-top:14px;}
 
   @media print{
-    @page{ size: A5 landscape; margin: 10mm; }
-    body *{visibility:hidden;}
-    #printArea, #printArea *{visibility:visible;}
-    #printArea{position:absolute;top:0;left:0;width:100%;}
+    @page{ size: 210mm 148mm; margin: 10mm; }
+    html, body{ height: auto !important; margin:0; padding:0; }
+    #app, .total-bar, .modal-bg{ display:none !important; }
+    #printArea{
+      display:block !important;
+      position: static !important;
+      left:auto !important; top:auto !important;
+      width:100% !important; max-width:100%;
+      padding:0; margin:0;
+      page-break-after: avoid;
+      page-break-inside: avoid;
+    }
+    #printArea *{ page-break-inside: avoid; }
   }
 </style>
 </head>
@@ -225,7 +234,7 @@
         <span class="combo-value" id="totalAmt">Rs. 0</span>
       </div>
       <div class="combo-col">
-        <span class="combo-label">Discount</span>
+        <span class="combo-label">Discount <span id="discountUnitLabel">(Rs.)</span></span>
         <span class="combo-value discount-inputs">
           <input type="number" id="discountInput" min="0" value="0" />
           <select id="discountType">
@@ -559,6 +568,8 @@ function computeDiscountAmount(){
 }
 
 function updateNetAmount(){
+  const unitLabel = document.getElementById('discountUnitLabel');
+  if(unitLabel) unitLabel.textContent = discountTypeEl.value === 'percent' ? '(%)' : '(Rs.)';
   const discAmt = computeDiscountAmount();
   if(discountTypeEl.value === 'percent'){
     let raw = parseFloat(discountInput.value);
