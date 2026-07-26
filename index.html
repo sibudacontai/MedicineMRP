@@ -561,8 +561,11 @@ function computeDiscountAmount(){
 function updateNetAmount(){
   const discAmt = computeDiscountAmount();
   if(discountTypeEl.value === 'percent'){
+    let raw = parseFloat(discountInput.value);
+    if(isNaN(raw) || raw < 0) raw = 0;
+    if(raw > 100) raw = 100;
     discountAmtRow.style.display = 'flex';
-    discountAmtDisplay.textContent = formatRs(discAmt);
+    discountAmtDisplay.textContent = formatRs(discAmt) + ' (' + raw + '%)';
   } else {
     discountAmtRow.style.display = 'none';
   }
@@ -604,7 +607,14 @@ function preparePrintArea(){
   let net = currentTotal - discAmt;
   if(net < 0) net = 0;
   document.getElementById('pTotal').textContent = formatRs(currentTotal);
-  document.getElementById('pDiscount').textContent = formatRs(discAmt);
+  let discLabel = formatRs(discAmt);
+  if(discountTypeEl.value === 'percent'){
+    let raw = parseFloat(discountInput.value);
+    if(isNaN(raw) || raw < 0) raw = 0;
+    if(raw > 100) raw = 100;
+    discLabel += ' (' + raw + '%)';
+  }
+  document.getElementById('pDiscount').textContent = discLabel;
   document.getElementById('pNet').textContent = formatRs(net);
 }
 
