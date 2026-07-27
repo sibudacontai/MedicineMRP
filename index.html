@@ -126,9 +126,10 @@
      brought on-screen only during actual printing via @media print below. */
   #printArea{
     position:absolute; left:-9999px; top:0;
-    width:700px; background:#fff; padding:20px; color:#173229;
+    width:700px; background:#fff; padding:20px; color:#000;
     font-family:Arial,Helvetica,sans-serif;
   }
+  .p-head h2{color:#173229;}
   .p-head{text-align:center;margin-bottom:10px;}
   .p-head h2{margin:0;font-size:22px;}
   .p-head div{font-size:12px;margin-top:4px;}
@@ -140,7 +141,7 @@
   .p-totals{margin-top:10px;font-size:13px;max-width:280px;margin-left:auto;}
   .p-totals div{display:flex;justify-content:space-between;padding:2px 0;}
   .p-totals .net{font-weight:bold;font-size:15px;border-top:1px solid #333;margin-top:4px;padding-top:6px;}
-  .p-footer{text-align:center;font-size:11px;color:#555;margin-top:14px;}
+  .p-footer{text-align:center;font-size:11px;color:#000;margin-top:14px;}
 
   @media print{
     @page{ size: 210mm 148mm; margin: 10mm; }
